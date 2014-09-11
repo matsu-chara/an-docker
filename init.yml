@@ -1,0 +1,30 @@
+---
+- hosts: all
+  sudo: True
+  tasks:
+    - name: update all package
+      yum: name=* state=latest
+
+    - name: install libselinux-python for lineinfile
+      yum: name=libselinux-python state=present
+
+    - name: install unzip curl
+      yum: name={{ item }} state=present
+      with_items:
+        - unzip
+        - curl
+
+    - name: allocate packer dir
+      file:  path=/usr/src/packer state=directory
+
+    - name: get packer file
+      get_url: url=https://dl.bintray.com/mitchellh/packer/{{ version }}_linux_amd64.zip dest=/usr/src/packer/{{ version }}_linux_amd64.zip
+
+    - name: unarchive packer
+      shell: |
+        unzip {{ version }}_linux_amd64.zip -d /usr/local/bin/
+      args:
+        chdir: /usr/src/packer
+        creates: /usr/local/bin/packer-packer
+  vars:
+    version: 0.7.1
